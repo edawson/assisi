@@ -5,7 +5,7 @@ import argparse
 
 
 def print_err(s):
-    sys.stderr.write(s)
+    sys.stderr.write(s + "\n")
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -166,6 +166,17 @@ def print_dist(sig, use_tight_ranges = False):
     print_err(ostr)
     return ostr
 
+def wrap(probs, sigm, isCounts):
+    return
+
+def fill_random_probs(sigs, number):
+    ret = []
+    for i in xrange(0, sigs):
+        p = [random.random() for i in xrange(0, number)]
+        ret.append(p)
+    return ret
+
+
 
 if __name__ == "__main__":
     #test = [random.random() for i in xrange(0, 96)]
@@ -173,7 +184,10 @@ if __name__ == "__main__":
     #print test
     args = parse_args()
 
-    probs = parse_sigs(args.infile)
+    if args.infile is not None:
+        probs = parse_sigs(args.infile)
+    else:
+        probs = fill_random_probs(10, 96)
     if args.iscounts:
         probs = [counts_to_props(i) for i in probs]
 
@@ -185,6 +199,9 @@ if __name__ == "__main__":
         print "threading not implemented"
         exit()
         p = mp.pool(args.threads)
+        ## Zip together our inputs
+        ## Pass to wrap() function
+        ## write to stdout
 
 
     sigm = {}
@@ -195,13 +212,13 @@ if __name__ == "__main__":
     elif args.random:
         rem = 1.0
         while rem > 0.01:
-            i = random.randint(0, 30)
+            i = random.randint(0, len(probs))
             if i not in sigm:
                 nex = random.uniform(0, rem)
-                sigm[random.randint(0,30)] = nex
+                sigm[i] = nex
                 rem = rem - nex
         print "Randomly simulating with", len(sigm), "signatures"
-        print sigm
+        print sigm, "\n"
     else:
         ## Enforce flat probabilities
         for i in xrange(0, len(probs)):
