@@ -9,6 +9,8 @@ def parse_args():
      help = "Input mutational proportions / counts file.", dest = "infile")
     parser.add_argument("-d", dest="sigdict", type = str,
     help = "A signature:proportion dictionary file, CSV format, one [sig,prop] pair per line")
+    parser.add_argument("-r", dest="random", action = "store_true", default = False,
+        help = "Randomly initialize sigs / amounts. Default: False")
     parser.add_argument("-c", action="store_true",
      help = "Input is raw counts, rather than proportions. Default: False", dest="iscounts", default = False)
     parser.add_argument("-n", type = int, dest="num",
@@ -17,6 +19,8 @@ def parse_args():
      dest="numsamples", help = "The number of mutational spectra to simulate. Default: 1", default = 1)
     parser.add_argument("-t", type = int, dest="threads", default = 1,
      help = "The number of multiprocessing threads to use, parallelized by spectrum. Default: 1")
+    parser.add_argument("-e", dest="eps", type = float,
+     help = "The proportion of error to incorporate. Default 0.0", default = 0.0)
 
     return parser.parse_args()
 
@@ -50,10 +54,10 @@ def rmse(sig, beta):
     return err
 
 ## Args: a 96-length vector of mutation counts
-def counts_to_props(sig_counts):
-    total = sum(i for i in sig_counts)
-    sig_counts = [float(i) / float(total) for i in sig_counts]
-    return sig_counts
+def counts_to_props(counts):
+    total = sum(counts)
+    p = [(float(i) / float(total)) for i in counts]
+    return p
 
 ## Args:
 ##  probs: A 96-length vector of probabilities for that sample
@@ -163,22 +167,24 @@ if __name__ == "__main__":
 
     probs = parse_sigs(args.infile)
     if args.iscounts:
-        probs = counts_to_props(probs)
+        probs = [counts_to_props(i) for i in probs]
+
 
     n_muts = args.num
     n_samples = args.numsamples
 
-    if n_samples > 4 and args.threads > 1:
+    if n_samples > 1 or args.threads > 1:
         print "threading not implemented"
         exit()
         p = mp.pool(args.threads)
 
 
-    sigm = {
-    }
+    sigm = {}
+
     if args.sigdict is not None:
         sigm = parse_sig_dict(args.sigdict)
-    else:
+
+    elif args.random:
         rem = 1.0
         while rem > 0.01:
             i = random.randint(0, 30)
@@ -186,12 +192,15 @@ if __name__ == "__main__":
                 nex = random.uniform(0, rem)
                 sigm[random.randint(0,30)] = nex
                 rem = rem - nex
-
-
         print "Randomly simulating with", len(sigm), "signatures"
         print sigm
+    else:
+        ## Enforce flat probabilities
+        for i in xrange(0, len(probs)):
+            sigm[i] = 1.0
+
     
-    d = sample_sig_list(sigm, n_muts, probs, len(probs), 0.0)
-    d = counts_to_props(d)
-    print_dist(d, True)
+    d = sample_sig_list(sigm, n_muts, probs, len(probs), args.eps)
+    c = counts_to_props(d)
+    print_dist(c, True)
     print d
