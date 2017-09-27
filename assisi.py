@@ -3,6 +3,10 @@ import random
 import multiprocessing as mp
 import argparse
 
+
+def print_err(s):
+    sys.stderr.write(s)
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", type = str,
@@ -21,6 +25,8 @@ def parse_args():
      help = "The number of multiprocessing threads to use, parallelized by spectrum. Default: 1")
     parser.add_argument("-e", dest="eps", type = float,
      help = "The proportion of error to incorporate. Default 0.0", default = 0.0)
+    parser.add_argument("-p", action = "store_true", dest = "showdist",
+     default = False, help = "Print distribution as ugly ASCII to terminal.")
 
     return parser.parse_args()
 
@@ -90,7 +96,7 @@ def sample_sig(probs, number):
 ##  sig_and_amt: a dictionary of the signature index
 ##      and the amount of that signature as a percentage of total mutations ( a float.)
 ##  number: the total number of mutations to produce
-##  probs: an array (list of lists), 30 x 96, containing the probabilities for each
+##  probs: an array (list of lists), numSigs x numContexts, containing the probabilities for each
 ##  mutation type within each signature
 def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0):
     if len(sig_and_amt) == 0 and eps < 0.01:
@@ -146,6 +152,7 @@ def print_dist(sig, use_tight_ranges = False):
     for i in ranges:
         if i > m:
             continue
+        ostr += '{0:05.1%}'.format(i) + " "
         for s in sig:
             if s >= i:
                 ostr += "|"
@@ -153,9 +160,10 @@ def print_dist(sig, use_tight_ranges = False):
                 ostr += " "
             ostr += " "
         ostr += "\n"
+    ostr += "======"
     for s in sig:
         ostr += "-="
-    print ostr
+    print_err(ostr)
     return ostr
 
 
@@ -202,5 +210,7 @@ if __name__ == "__main__":
     
     d = sample_sig_list(sigm, n_muts, probs, len(probs), args.eps)
     c = counts_to_props(d)
-    print_dist(c, True)
-    print d
+    
+    if (args.showdist):
+        print_dist(c, True)
+    print "\t".join([str(int(i)) for i in d])
