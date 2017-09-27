@@ -11,7 +11,9 @@ September 27 2017
 We've included the cosmic mutational signatures probabilities from deconstructSigs (https://github.com/raerose01/deconstructSigs).
 
 ## Running assisi
-`python assisi.py /path/to/mutational/props/file.tsv`  
+`python assisi.py -h` for help.  
+
+Typical usage: `python assisi.py -i cosmic_file.tsv -n 1000
 
 Rules:  
     No headers  
@@ -20,5 +22,5 @@ Rules:
     There must be 96 columns (for now)  
 
 ## Installation
-    `assisi` is written in barebones python2.7 - no installation necessary.
+`assisi` is written in barebones python2.7 - no installation necessary.
 
