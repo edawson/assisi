@@ -113,7 +113,7 @@ def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0):
     ## Amounts is a now a probability vector
     ## to introduce process noise, we'll make the minimum probability
     ## of any signature vary by eps
-    amts = [eps if i == 0 else i for i in amts]
+    amts = [abs(random.uniform(i - eps, i + eps)) for i in amts]
 
     ## Now we're going to sample the signatures
     ret = [0.0 for i in xrange(0, 96)]
