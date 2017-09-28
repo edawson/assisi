@@ -10,7 +10,7 @@ def print_err(s):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", type = str,
-     help = "Input mutational proportions / counts file.", dest = "infile")
+     help = "Input mutational proportions / counts file.", dest = "infile", required = True)
     parser.add_argument("-d", dest="sigdict", type = str,
     help = "A signature:proportion dictionary file, CSV format, one [sig,prop] pair per line")
     parser.add_argument("-r", dest="random", action = "store_true", default = False,
@@ -55,8 +55,8 @@ def parse_sigs(sig_file):
 
 def rmse(sig, beta):
     err = 0.0
-    for i in len(sig):
-        err += (sig[i] - beta[i])^2
+    for i in xrange(0, len(sig)):
+        err += (sig[i] - beta[i])**2
     return err
 
 ## Args: a 96-length vector of mutation counts
