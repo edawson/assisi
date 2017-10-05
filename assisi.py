@@ -27,6 +27,9 @@ def parse_args():
      help = "The proportion of error to incorporate. Default 0.0", default = 0.0)
     parser.add_argument("-p", action = "store_true", dest = "showdist",
      default = False, help = "Print distribution as ugly ASCII to terminal.")
+    parser.add_argument("-f", action = "store_true", default = False, dest = "flat",
+            help = "Use flat priors for sampling")
+    parser.add_argument("-C", action="store_true", default = False, dest = "outputprops", help = "Output proportions, rather than raw counts.")
 
     return parser.parse_args()
 
@@ -98,7 +101,7 @@ def sample_sig(probs, number):
 ##  number: the total number of mutations to produce
 ##  probs: an array (list of lists), numSigs x numContexts, containing the probabilities for each
 ##  mutation type within each signature
-def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0):
+def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0, flat = False):
     if len(sig_and_amt) == 0 and eps < 0.01:
         print "FAILING: low epsilon and no signature proportions specified"
         print "Please specify either of these values to prevent running infinitely."
@@ -113,10 +116,14 @@ def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0):
     ## Amounts is a now a probability vector
     ## to introduce process noise, we'll make the minimum probability
     ## of any signature vary by eps
-    amts = [abs(random.uniform(i - eps, i + eps)) for i in amts]
+    if flat:
+        amts = [0.5 for i in amts]    
+    else:
+        amts = [abs(random.uniform(i - eps, i + eps)) for i in amts]
+
 
     ## Now we're going to sample the signatures
-    ret = [0.0 for i in xrange(0, 96)]
+    ret = [0.0 for i in xrange(0, len(probs[0]))]
     count = 0
     while count < number:
         x = random.randint(0, len(sigs) - 1 )
@@ -184,10 +191,10 @@ if __name__ == "__main__":
     #print test
     args = parse_args()
 
-    if args.infile is not None:
+    if args.infile is not None and args.infile is not "":
         probs = parse_sigs(args.infile)
     else:
-        probs = fill_random_probs(10, 96)
+        probs = fill_random_probs(30, 96)
     if args.iscounts:
         probs = [counts_to_props(i) for i in probs]
 
@@ -225,7 +232,7 @@ if __name__ == "__main__":
             sigm[i] = 1.0
 
     
-    d = sample_sig_list(sigm, n_muts, probs, len(probs), args.eps)
+    d = sample_sig_list(sigm, n_muts, probs, len(probs), args.eps, args.flat)
     c = counts_to_props(d)
     
     if (args.showdist):
