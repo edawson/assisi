@@ -22,7 +22,7 @@ def denoise(dat):
 
 def train(sigs, enc_dim):
     inpt = Input(shape=(96,))
-    encoded = Dense(enc_dim, activation='relu')(inpt)
+    encoded = Dense(enc_dim, activation='relu', activity_regularizer=regularizers.l1(10e-5))(inpt)
     #encoded = Dense(60, activation='relu')(inpt)
     #encoded = Dense(30, activation='relu')(encoded)
     #encoded = Dense(enc_dim, activation='relu')(encoded)
@@ -53,9 +53,9 @@ def train(sigs, enc_dim):
     en_d = encoder.predict(xtr)
     de_d = decoder.predict(en_d)
 
-    print xtr[0]
+    print (xtr[0])
     print_dist(xtr[0], True)
-    print de_d[0]
+    print (de_d[0])
     print_dist(de_d[0], True)
 
     #print grab_layer([xtr])[0][0]

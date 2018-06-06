@@ -225,7 +225,7 @@ if __name__ == "__main__":
                 sigm[i] = nex
                 rem = rem - nex
         print "Randomly simulating with", len(sigm), "signatures"
-        print sigm, "\n"
+        print {i + 1 : sigm[i] for i in sigm}, "\n"
     else:
         ## Enforce flat probabilities
         for i in xrange(0, len(probs)):
