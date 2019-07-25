@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import random
 import multiprocessing as mp
@@ -39,9 +40,9 @@ def parse_sig_dict(dict_file):
         for line in ifi:
             tokens = line.strip().split(",")
             if len(tokens) > 3:
-                print "ERROR: too many columsn in sig_dict file."
-                print "There should be only two values, separated by a comma, per line."
-                print "E.g. \"1,0.5\""
+                print ("ERROR: too many columsn in sig_dict file.")
+                print ("There should be only two values, separated by a comma, per line.")
+                print ("E.g. \"1,0.5\"")
                 exit(9)
             d[int(tokens[0].strip())] = float(tokens[1].strip())
     return d
@@ -103,8 +104,8 @@ def sample_sig(probs, number):
 ##  mutation type within each signature
 def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0, flat = False):
     if len(sig_and_amt) == 0 and eps < 0.01:
-        print "FAILING: low epsilon and no signature proportions specified"
-        print "Please specify either of these values to prevent running infinitely."
+        print ("FAILING: low epsilon and no signature proportions specified")
+        print ("Please specify either of these values to prevent running infinitely.")
         exit(9)
 
     cspp = sample_prob
@@ -203,7 +204,7 @@ if __name__ == "__main__":
     n_samples = args.numsamples
 
     if n_samples > 1 or args.threads > 1:
-        print "threading not implemented"
+        print ("threading not implemented")
         exit()
         p = mp.pool(args.threads)
         ## Zip together our inputs
@@ -224,8 +225,8 @@ if __name__ == "__main__":
                 nex = random.uniform(0, rem)
                 sigm[i] = nex
                 rem = rem - nex
-        print "Randomly simulating with", len(sigm), "signatures"
-        print {i + 1 : sigm[i] for i in sigm}, "\n"
+        print ("Randomly simulating with", len(sigm), "signatures")
+        print ({i + 1 : sigm[i] for i in sigm}, "\n")
     else:
         ## Enforce flat probabilities
         for i in xrange(0, len(probs)):
@@ -237,4 +238,4 @@ if __name__ == "__main__":
     
     if (args.showdist):
         print_dist(c, True)
-    print "\t".join([str(int(i)) for i in d])
+    print ("\t".join([str(int(i)) for i in d]))
