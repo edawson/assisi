@@ -59,7 +59,7 @@ def parse_sigs(sig_file):
 
 def rmse(sig, beta):
     err = 0.0
-    for i in xrange(0, len(sig)):
+    for i in range(0, len(sig)):
         err += (sig[i] - beta[i])**2
     return err
 
@@ -84,7 +84,7 @@ def sample_sig(probs, number):
     ## The following line caches a function in python,
     ## and since we call this one many times, we want to do that.
     csp = sample_prob
-    ret = [0 for i in xrange(0, len(probs))]
+    ret = [0 for i in range(0, len(probs))]
     count = 0
     last = 0
     while count < number:
@@ -109,8 +109,8 @@ def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0, flat =
         exit(9)
 
     cspp = sample_prob
-    sigs = [i for i in xrange(0, num_sigs)]
-    amts = [0.0 for i in xrange(0, num_sigs)]
+    sigs = [i for i in range(0, num_sigs)]
+    amts = [0.0 for i in range(0, num_sigs)]
     for i in sig_and_amt:
         amts[i - 1] = float(sig_and_amt[i])
     
@@ -124,7 +124,7 @@ def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0, flat =
 
 
     ## Now we're going to sample the signatures
-    ret = [0.0 for i in xrange(0, len(probs[0]))]
+    ret = [0.0 for i in range(0, len(probs[0]))]
     count = 0
     while count < number:
         x = random.randint(0, len(sigs) - 1 )
@@ -179,15 +179,15 @@ def wrap(probs, sigm, isCounts):
 
 def fill_random_probs(sigs, number):
     ret = []
-    for i in xrange(0, sigs):
-        p = [random.random() for i in xrange(0, number)]
+    for i in range(0, sigs):
+        p = [random.random() for i in range(0, number)]
         ret.append(p)
     return ret
 
 
 
 if __name__ == "__main__":
-    #test = [random.random() for i in xrange(0, 96)]
+    #test = [random.random() for i in range(0, 96)]
     #print_dist(test)
     #print test
     args = parse_args()
@@ -229,7 +229,7 @@ if __name__ == "__main__":
         print ({i + 1 : sigm[i] for i in sigm}, "\n")
     else:
         ## Enforce flat probabilities
-        for i in xrange(0, len(probs)):
+        for i in range(0, len(probs)):
             sigm[i] = 1.0
 
     
