@@ -5,9 +5,6 @@ import multiprocessing as mp
 import argparse
 
 
-def print_err(s):
-    sys.stderr.write(s + "\n")
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", type = str,
@@ -57,32 +54,47 @@ def parse_sigs(sig_file):
             siggy.append(tokens)
     return siggy
 
+"""
+Returns the root mean square error between two vectors.
+"""
 def rmse(sig, beta):
     err = 0.0
     for i in range(0, len(sig)):
         err += (sig[i] - beta[i])**2
     return err
 
-## Args: a 96-length vector of mutation counts
+"""
+Takes a vector of mutation counts
+and converts each count to a proportion
+by dividing each by the vector's sum.
+
+"""
 def counts_to_props(counts):
     total = sum(counts)
     p = [(float(i) / float(total)) for i in counts]
     return p
 
-## Args:
-##  probs: A 96-length vector of probabilities for that sample
-##  index: the index of the desired mut category
-##  value: the value from the random number generator
+"""
+A helper function for Monte Carlo sampling a vector of probabilities.
+Takes a vector of probabilities, an index, and a random number[0,1]
+Returns true if the index should be sampled, false otherwise.
+"""
 def sample_prob(probs, index, val):
     if val <= probs[index]:
         return True
     return False
 
-## Args:
-##  sig_vec: an empty vector to fill with mutation counts
+"""
+Sample a set number of mutations from a vector of probabilities
+Takes as arguments a vector of probabilities (i.e., a signature)
+and a total number of mutations
+to sample from that signature.
+Returns a vector (len(probs)) of counts,
+where each index in the vector is a count of a particular feature
+and the index of the last mutational category sampled
+"""
 def sample_sig(probs, number):
-    ## The following line caches a function in python,
-    ## and since we call this one many times, we want to do that.
+    ## Cache the sample_prob function locally for performance
     csp = sample_prob
     ret = [0 for i in range(0, len(probs))]
     count = 0
@@ -118,7 +130,7 @@ def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0, flat =
     ## to introduce process noise, we'll make the minimum probability
     ## of any signature vary by eps
     if flat:
-        amts = [0.5 for i in amts]    
+        amts = [float(1)/float(len(amts)) for i in amts]    
     else:
         amts = [abs(random.uniform(i - eps, i + eps)) for i in amts]
 
@@ -135,6 +147,11 @@ def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0, flat =
             count += 1
     return ret
 
+
+"""
+Pretty-prints a signature to the terminal. Optionally prints 
+using ranges that show more detail.
+"""
 def print_dist(sig, use_tight_ranges = False):
     ostr = ""
     ranges = []
@@ -171,16 +188,18 @@ def print_dist(sig, use_tight_ranges = False):
     ostr += "======"
     for s in sig:
         ostr += "-="
-    print_err(ostr)
+    print(ostr, file=sys.stderr)
     return ostr
 
-def wrap(probs, sigm, isCounts):
-    return
-
-def fill_random_probs(sigs, number):
+"""
+Generates n_sigs random signatures with n_features.
+Because these are not emitted by a biased process they
+will largely be flat.
+"""
+def fill_random_probs(n_sigs, n_features):
     ret = []
-    for i in range(0, sigs):
-        p = [random.random() for i in range(0, number)]
+    for i in range(0, n_sigs):
+        p = [random.random() for i in range(0, n_features)]
         ret.append(p)
     return ret
 
