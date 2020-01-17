@@ -2,13 +2,21 @@ from __future__ import print_function
 import sys
 import random
 import multiprocessing as mp
+from collections import defaultdict
 import argparse
 
 
+"""
+A debugging function.
+Given a list of values with any type,
+write those values to stderr separated by spaces.
+"""
+def write_err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", type = str,
-     help = "Input mutational proportions / counts file.", dest = "infile", required = True)
+    parser.add_argument("-i", type = str, help = "Input mutational proportions / counts file.", dest = "infile", required = True)
     parser.add_argument("-d", dest="sigdict", type = str,
     help = "A signature:proportion dictionary file, CSV format, one [sig,prop] pair per line")
     parser.add_argument("-r", dest="random", action = "store_true", default = False,
@@ -18,7 +26,7 @@ def parse_args():
     parser.add_argument("-n", type = int, dest="num",
      help = "The number of mutations to simulate. Default: 1000", default = 1000)
     parser.add_argument("-m", type = int,
-     dest="numsamples", help = "The number of mutational spectra to simulate. Default: 1", default = 1)
+     dest="numsamples", help = "The number of mutational catalogs (i.e., samples) to simulate. Default: 1", default = 1)
     parser.add_argument("-t", type = int, dest="threads", default = 1,
      help = "The number of multiprocessing threads to use, parallelized by spectrum. Default: 1")
     parser.add_argument("-e", dest="eps", type = float,
@@ -45,6 +53,12 @@ def parse_sig_dict(dict_file):
     return d
 
 
+"""
+Takes a filename for a file
+containing mutational signatures to sample from.
+The file must have the following format for each row:
+<Signature> [<Context1Amt>   <Context2Amt> ... <ContextNAmt>]
+"""
 def parse_sigs(sig_file):
     siggy = []
     with open(sig_file, "r") as s:
@@ -53,6 +67,29 @@ def parse_sigs(sig_file):
             tokens = [float(i) for i in tokens]
             siggy.append(tokens)
     return siggy
+
+"""
+Reads a file with the following columns:
+Signature Change  Context Amount
+
+and generates a dictionary of signature:change:context:amount
+as well as
+a dictionary mapping signature names to a vector of probabilities for each change/context
+"""
+def parse_tidy_sig_file(sig_file, nFeatures = 96):
+    tidy_sig_d = defaultdict(lambda : defaultdict(float))
+    vec_d = defaultdict(list)
+
+    index_d = defaultdict(int)
+    r_index_d = defaultdict(str)
+
+    with open(sig_file, "r") as ifi:
+        for line in ifi:
+            line = line.strip()
+            if not "Context" in line:
+                tokens = line.split("\t")
+
+        return vec_d, tidy_sig_d
 
 """
 Returns the root mean square error between two vectors.
@@ -116,8 +153,8 @@ def sample_sig(probs, number):
 ##  mutation type within each signature
 def sample_sig_list(sig_and_amt, number, probs, num_sigs = 30, eps = 0.0, flat = False):
     if len(sig_and_amt) == 0 and eps < 0.01:
-        print ("FAILING: low epsilon and no signature proportions specified")
-        print ("Please specify either of these values to prevent running infinitely.")
+        write_err("Error: low epsilon and no signature proportions specified")
+        write_err("Please specify either of these values to prevent running infinitely.")
         exit(9)
 
     cspp = sample_prob
@@ -195,6 +232,7 @@ def print_dist(sig, use_tight_ranges = False):
 Generates n_sigs random signatures with n_features.
 Because these are not emitted by a biased process they
 will largely be flat.
+Returns a list of lists.
 """
 def fill_random_probs(n_sigs, n_features):
     ret = []
@@ -204,6 +242,17 @@ def fill_random_probs(n_sigs, n_features):
     return ret
 
 
+
+"""
+Output function for a mutational counts matrix
+samps is a list of list, where each sublists is a list of feature counts for a single sample
+Returns a matrix, Samples X Features, in {sep}-separated form.
+"""
+def ouput_counts(samps, sep = "\t", tidy = False):
+    return
+
+def output_sig_dict(samps, sep = "\t", tidy = False):
+    return
 
 if __name__ == "__main__":
     #test = [random.random() for i in range(0, 96)]
@@ -244,8 +293,7 @@ if __name__ == "__main__":
                 nex = random.uniform(0, rem)
                 sigm[i] = nex
                 rem = rem - nex
-        print ("Randomly simulating with", len(sigm), "signatures")
-        print ({i + 1 : sigm[i] for i in sigm}, "\n")
+        #print ("Random assortment of signatures: ", len(sigm), {i + 1 : sigm[i] for i in sigm})
     else:
         ## Enforce flat probabilities
         for i in range(0, len(probs)):
@@ -257,4 +305,8 @@ if __name__ == "__main__":
     
     if (args.showdist):
         print_dist(c, True)
-    print ("\t".join([str(int(i)) for i in d]))
+
+    print ("\t".join([str(len(sigm)), str({i + 1 : sigm[i] for i in sigm})]) + "\t" + "\t".join([str(int(i)) for i in d]))
+
+
+
