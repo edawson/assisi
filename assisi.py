@@ -317,11 +317,14 @@ if __name__ == "__main__":
     catalogs = [p.apply_async(generate_catalog, args=(n_muts, probs, args.eps, sigm, args.random, args.flat)) for i in range(0, args.numsamples)]
 
     for i in catalogs:
-        print (i.get())
+        d = i.get()
+        print (d)
 
-    if (args.showdist):
-        c = counts_to_props(d)
-        print_dist(c, True)
+        if (args.showdist):
+            c = counts_to_props(d)
+            print_dist(c, True)
+        
+
 
 
 
