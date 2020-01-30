@@ -254,6 +254,9 @@ def ouput_counts(samps, sep = "\t", tidy = False):
 def output_sig_dict(samps, sep = "\t", tidy = False):
     return
 
+def generate_catalog(n_samples, n_muts, sig_probs, epsilon, sig_d, init_random_sigs = True):
+    return
+
 if __name__ == "__main__":
     #test = [random.random() for i in range(0, 96)]
     #print_dist(test)
@@ -271,42 +274,48 @@ if __name__ == "__main__":
     n_muts = args.num
     n_samples = args.numsamples
 
-    if n_samples > 1 or args.threads > 1:
-        print ("threading not implemented")
-        exit()
-        p = mp.pool(args.threads)
-        ## Zip together our inputs
-        ## Pass to wrap() function
-        ## write to stdout
+    # if n_samples > 1 or args.threads > 1:
+    #     print ("threading not implemented")
+    #     exit()
+    #     p = mp.pool(args.threads)
+    #     ## Zip together our inputs
+    #     ## Pass to wrap() function
+    #     ## write to stdout
+
+    p = mp.Pool(args.threads)
 
 
-    sigm = {}
+    # if args.sigdict is not None:
+    #     sigm = parse_sig_dict(args.sigdict)
 
-    if args.sigdict is not None:
-        sigm = parse_sig_dict(args.sigdict)
+    for i in range(0, args.numsamples):
+        if args.sigdict is None:
+            sigm = {}
+        else:
+            sigm = parse_sig_dict(args.sigdict)
 
-    elif args.random:
-        rem = 1.0
-        while rem > 0.01:
-            i = random.randint(0, len(probs))
-            if i not in sigm:
-                nex = random.uniform(0, rem)
-                sigm[i] = nex
-                rem = rem - nex
+        if args.random:
+            rem = 1.0
+            while rem > 0.01:
+                i = random.randint(0, len(probs))
+                if i not in sigm:
+                    nex = random.uniform(0, rem)
+                    sigm[i] = nex
+                    rem = rem - nex
         #print ("Random assortment of signatures: ", len(sigm), {i + 1 : sigm[i] for i in sigm})
-    else:
-        ## Enforce flat probabilities
-        for i in range(0, len(probs)):
-            sigm[i] = 1.0
+        else:
+            ## Enforce flat probabilities
+            for i in range(0, len(probs)):
+                sigm[i] = 1.0
 
     
-    d = sample_sig_list(sigm, n_muts, probs, len(probs), args.eps, args.flat)
-    c = counts_to_props(d)
-    
-    if (args.showdist):
-        print_dist(c, True)
+        d = sample_sig_list(sigm, n_muts, probs, len(probs), args.eps, args.flat)
+        print ("\t".join([str(len(sigm)), str({i + 1 : sigm[i] for i in sigm})]) + "\t" + "\t".join([str(int(i)) for i in d]))
 
-    print ("\t".join([str(len(sigm)), str({i + 1 : sigm[i] for i in sigm})]) + "\t" + "\t".join([str(int(i)) for i in d]))
+        if (args.showdist):
+            c = counts_to_props(d)
+            print_dist(c, True)
+
 
 
 
