@@ -254,8 +254,24 @@ def ouput_counts(samps, sep = "\t", tidy = False):
 def output_sig_dict(samps, sep = "\t", tidy = False):
     return
 
-def generate_catalog(n_samples, n_muts, sig_probs, epsilon, sig_d, init_random_sigs = True):
-    return
+def generate_catalog(n_muts, sig_probs, epsilon, sig_m, init_random_sigs = True, useflat = False):
+    if init_random_sigs:
+        sigm = {}
+        rem = 1.0
+        while rem > 0.01:
+            i = random.randint(0, len(probs))
+            if i not in sigm:
+                nex = random.uniform(0, rem)
+                sigm[i] = nex
+                rem = rem - nex
+    else:
+        ## Enforce flat probabilities
+        for i in range(0, len(probs)):
+            sigm[i] = 1.0
+
+    d = sample_sig_list(sigm, n_muts, sig_probs, len(sig_probs), epsilon, useflat)
+    return ("\t".join([str(len(sigm)), str({i + 1 : sigm[i] for i in sigm})]) + "\t" + "\t".join([str(int(i)) for i in d]))
+
 
 if __name__ == "__main__":
     #test = [random.random() for i in range(0, 96)]
@@ -288,33 +304,24 @@ if __name__ == "__main__":
     # if args.sigdict is not None:
     #     sigm = parse_sig_dict(args.sigdict)
 
-    for i in range(0, args.numsamples):
-        if args.sigdict is None:
-            sigm = {}
-        else:
-            sigm = parse_sig_dict(args.sigdict)
+    catalogs = []
+    sigm = {}
+    if args.sigdict is None:
+        sigm = {}
+    else:
+        sigm = parse_sig_dict(args.sigdict)
 
-        if args.random:
-            rem = 1.0
-            while rem > 0.01:
-                i = random.randint(0, len(probs))
-                if i not in sigm:
-                    nex = random.uniform(0, rem)
-                    sigm[i] = nex
-                    rem = rem - nex
-        #print ("Random assortment of signatures: ", len(sigm), {i + 1 : sigm[i] for i in sigm})
-        else:
-            ## Enforce flat probabilities
-            for i in range(0, len(probs)):
-                sigm[i] = 1.0
+    #for i in range(0, args.numsamples):
+    #    print (generate_catalog(n_muts, probs, args.eps, sigm, args.random, args.flat))
 
-    
-        d = sample_sig_list(sigm, n_muts, probs, len(probs), args.eps, args.flat)
-        print ("\t".join([str(len(sigm)), str({i + 1 : sigm[i] for i in sigm})]) + "\t" + "\t".join([str(int(i)) for i in d]))
+    catalogs = [p.apply_async(generate_catalog, args=(n_muts, probs, args.eps, sigm, args.random, args.flat)) for i in range(0, args.numsamples)]
 
-        if (args.showdist):
-            c = counts_to_props(d)
-            print_dist(c, True)
+    for i in catalogs:
+        print (i.get())
+
+    if (args.showdist):
+        c = counts_to_props(d)
+        print_dist(c, True)
 
 
 
