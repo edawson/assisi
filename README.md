@@ -13,7 +13,7 @@ We've included the cosmic mutational signatures probabilities from deconstructSi
 ## Running assisi
 `python assisi.py -h` for help.  
 
-## Typical usage: `
+## Typical usage: 
 The following command will generate a single mutational catalog with 1000 total mutations.
 `-r` specifies that assisi should generate a random number of signatures (1-10) and assign
 random proportions to each of those ten signatures. The sum of the proportions is 1.0,
